@@ -3,15 +3,16 @@
 <div class="crt"></div>
 <div id="intro"><canvas id="rainI"></canvas><pre id="introTxt"></pre><button id="skip">SKIP ▶▶</button></div>
 <div id="auth"><form autocomplete="on"><h1 id="aT"></h1><div class="sub" id="aSub"></div><div class="tabs"><button type="button" class="b on" id="tL"></button><button type="button" class="b" id="tR"></button></div>
-<label id="lU" for="aU"></label><input id="aU" autocomplete="username" required><label id="lP" for="aP"></label><input id="aP" type="password" autocomplete="current-password" required>
-<button class="b go" id="aGo"></button><div id="aMsg"></div><div class="note" id="aNote"></div></form></div>
+<button type="button" class="b" id="aLang" style="position:absolute;right:12px;top:12px"></button><label id="lU" for="aU"></label><input id="aU" autocomplete="username" required><label id="lP" for="aP"></label><input id="aP" type="password" autocomplete="current-password" required>
+<div id="wBox" style="display:none"><label id="lW" for="aW"></label><textarea id="aW" rows="3" maxlength="500"></textarea></div><button class="b go" id="aGo"></button><div id="aMsg"></div><div class="note" id="aNote"></div></form></div>
 <div id="app">
 <header class="panel"><div class="logo"><span id="ttl"></span><small id="sub"></small></div>
 <div class="stats"><div><b id="sE">0</b><span id="sL"></span></div><div><b id="sCn">0</b><span id="sC"></span></div><div><b id="sOr">0</b><span id="sO"></span></div><div><b id="sUv" style="font-size:12px">--</b><span id="sU"></span></div></div>
-<button class="b" id="lang">EN</button><button class="b" id="out"></button></header>
+<button class="b" id="admBtn" style="display:none"></button><button class="b" id="lang">EN</button><button class="b" id="out"></button></header>
 <div class="bar panel"><input id="q" type="search"><select id="fCat"></select><select id="fReg"></select><select id="fT"></select></div>
 <section class="panel" id="stream"><h2 id="hEv"></h2><div id="evs"></div></section>
 <section class="panel" id="mapBox"><div id="globe"></div><canvas id="map2d"></canvas><div id="legend"></div><div id="mapInfo"></div></section>
 <aside id="side"><section class="panel"><h2 id="hC"></h2><div class="rows" id="byC"></div></section><section class="panel"><h2 id="hO"></h2><div class="rows" id="byO"></div></section>
 <section class="panel lb"><h2 id="hLb" style="margin:0 -10px"></h2><div class="tabs"><button class="b on" id="tA"></button><button class="b" id="tO"></button></div><div id="lbBody"></div></section></aside>
-</div><script>/*JS*/</script></body></html>
+</div>
+<div id="adm"><div class="panel"><h2 id="admT"></h2><button class="b" id="admX">✕</button><div id="admList"></div></div></div><script>/*JS*/</script></body></html>

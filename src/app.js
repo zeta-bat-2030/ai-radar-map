@@ -1,10 +1,10 @@
 const $=id=>document.getElementById(id);const MOB=matchMedia('(max-width:900px)').matches;
 const I18N={zh:{title:'互联网情报系统',sub:'INTERNET INTELLIGENCE SYSTEM · 全球AI热点实时地图',ev:'实时事件流',events:'事件',countries:'国家/地区',orgs:'机构',updated:'更新',byC:'按国家/地区统计',byO:'按公司/机构统计',lb:'主流 AI 模型榜',q:'$ search 中英全文搜索…',allCat:'全部类别',allReg:'全部地区',allT:'全部时间',h24:'24小时内',d3:'3天内',d7:'7天内',
  cat:{model:'模型发布',funding:'融资',policy:'政策',paper:'论文',product:'产品',other:'其他'},arena:'LMArena 综合',orr:'OpenRouter 调用量',src:'来源',login:'登录',reg:'注册',user:'用户名',pw:'密码',enter:'[ 接入系统 ]',create:'[ 创建账号 ]',logout:'退出',
- aNote:'本地门禁：账号仅存于本浏览器，密码经 PBKDF2-SHA256 哈希。',aSub:'身份验证 // AUTH REQUIRED',noUser:'用户不存在，请先注册',badPw:'密码错误',exists:'用户名已存在',short:'用户名≥3位，密码≥6位',ok:'注册成功，正在接入…',mode2d:'2D 模式',mode3d:'3D 地球',unk:'未定位'},
+ aNote:'服务端鉴权 · PBKDF2 加盐哈希 · 签名令牌 · 登录限流',aSub:'身份验证 // AUTH REQUIRED',noUser:'用户不存在，请先注册',badPw:'密码错误',exists:'用户名已存在',short:'用户名3-32位(字母数字_-.)，密码≥8位',ok:'注册成功，正在接入…',mode2d:'2D 模式',mode3d:'3D 地球',unk:'未定位',apply:'申请账号',reason:'申请理由',reasonPh:'你是谁 / 为什么需要访问',submit:'[ 提交申请 ]',applyNote:'提交后需管理员审批，批准后即可登录。',needReason:'请填写申请理由',applied:'✔ 申请已提交，等待管理员审批',admin:'审批后台',status:'状态',time:'申请时间',st:{pending:'待审批',approved:'已批准',rejected:'已拒绝',disabled:'已禁用'},act:{approve:'批准',reject:'拒绝',disable:'禁用',delete:'删除'},err:{bad:'用户名或密码错误',pending:'账号待审批，请等待管理员批准',rejected:'申请已被拒绝',disabled:'账号已被禁用',rate:'尝试过于频繁，请稍后再试',exists:'用户名已被占用',invalid:'输入不合法',origin:'来源不被允许',net:'网络错误：无法连接鉴权服务'}},
  en:{title:'Internet Intelligence System',sub:'互联网情报系统 · Global AI hotspots, live',ev:'Live Event Stream',events:'Events',countries:'Countries',orgs:'Orgs',updated:'Updated',byC:'By Country/Region',byO:'By Company/Org',lb:'Top AI Model Leaderboards',q:'$ search full-text (EN/中文)…',allCat:'All categories',allReg:'All regions',allT:'Any time',h24:'Last 24h',d3:'Last 3 days',d7:'Last 7 days',
  cat:{model:'Model release',funding:'Funding',policy:'Policy',paper:'Paper',product:'Product',other:'Other'},arena:'LMArena Overall',orr:'OpenRouter usage',src:'Source',login:'Login',reg:'Register',user:'Username',pw:'Password',enter:'[ ACCESS ]',create:'[ CREATE ACCOUNT ]',logout:'Logout',
- aNote:'Local gate only: account stored in this browser, password hashed with PBKDF2-SHA256.',aSub:'AUTH REQUIRED // 身份验证',noUser:'User not found — register first',badPw:'Wrong password',exists:'Username taken',short:'Username ≥3, password ≥6 chars',ok:'Registered, connecting…',mode2d:'2D mode',mode3d:'3D globe',unk:'Unlocated'}};
+ aNote:'Server-side auth · salted PBKDF2 · signed tokens · rate-limited',aSub:'AUTH REQUIRED // 身份验证',noUser:'User not found — register first',badPw:'Wrong password',exists:'Username taken',short:'Username 3-32 chars [A-Za-z0-9_-.], password ≥8',ok:'Registered, connecting…',mode2d:'2D mode',mode3d:'3D globe',unk:'Unlocated',apply:'Request access',reason:'Reason',reasonPh:'Who you are / why you need access',submit:'[ SUBMIT REQUEST ]',applyNote:'Requests are reviewed by the admin. You can log in once approved.',needReason:'Please enter a reason',applied:'✔ Request submitted — awaiting admin approval',admin:'Admin',status:'Status',time:'Requested',st:{pending:'Pending',approved:'Approved',rejected:'Rejected',disabled:'Disabled'},act:{approve:'Approve',reject:'Reject',disable:'Disable',delete:'Delete'},err:{bad:'Wrong username or password',pending:'Account pending approval',rejected:'Request was rejected',disabled:'Account disabled',rate:'Too many attempts, try later',exists:'Username taken',invalid:'Invalid input',origin:'Origin not allowed',net:'Network error: auth service unreachable'}}};
 const CN={US:['美国','United States'],CN:['中国','China'],GB:['英国','UK'],FR:['法国','France'],DE:['德国','Germany'],JP:['日本','Japan'],KR:['韩国','Korea'],IN:['印度','India'],CA:['加拿大','Canada'],IL:['以色列','Israel'],SG:['新加坡','Singapore'],AE:['阿联酋','UAE'],SA:['沙特','Saudi Arabia'],TW:['中国台湾','Taiwan, China'],HK:['中国香港','Hong Kong, China'],RU:['俄罗斯','Russia'],BR:['巴西','Brazil'],AU:['澳大利亚','Australia'],NL:['荷兰','Netherlands'],SE:['瑞典','Sweden'],CH:['瑞士','Switzerland'],IT:['意大利','Italy'],ES:['西班牙','Spain'],EU:['欧盟','EU'],IE:['爱尔兰','Ireland']};
 let L=localStorage.lang||'zh',T=I18N[L],EV=[],MD=null,view=[],G=null,mode=null,lbTab='arena',ms=null;
 const cn=c=>c?(CN[c]?CN[c][L=='zh'?0:1]:c):T.unk;const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
@@ -22,28 +22,36 @@ function intro(done){const box=$('intro'),cv=$('rainI'),x=cv.getContext('2d');le
   if(ci<l.length){ci+=3;el.innerHTML=out+esc(l.slice(0,ci))+'█';setTimeout(tick,14)}else{out+=esc(l)+'\n';li++;ci=0;el.innerHTML=out;setTimeout(tick,90)}};tick();
  const end=()=>{if(!run)return;run=false;box.style.opacity=0;setTimeout(()=>{box.remove();done()},500)};$('skip').onclick=end;box.addEventListener('click',e=>{if(e.target.id!='skip')end()});}
 
-/* ---------- local auth (gate only) ---------- */
-const enc=new TextEncoder(),hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
-async function hashPw(pw,salt){const k=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);return hex(await crypto.subtle.deriveBits({name:'PBKDF2',salt:enc.encode(salt),iterations:150000,hash:'SHA-256'},k,256))}
-const users=()=>JSON.parse(localStorage.iis_users||'{}');let aMode='login';
-function authUI(){$('aT').textContent=T.title;$('aSub').textContent=T.aSub;$('tL').textContent=T.login;$('tR').textContent=T.reg;$('lU').textContent=T.user;$('lP').textContent=T.pw;$('aGo').textContent=aMode=='login'?T.enter:T.create;$('aNote').textContent=T.aNote;$('tL').classList.toggle('on',aMode=='login');$('tR').classList.toggle('on',aMode=='reg')}
-function auth(done){if(sessionStorage.iis_session&&users()[sessionStorage.iis_session])return done();const a=$('auth');a.style.display='flex';authUI();
- $('tL').onclick=()=>{aMode='login';authUI()};$('tR').onclick=()=>{aMode='reg';authUI()};
- a.querySelector('form').onsubmit=async e=>{e.preventDefault();const u=$('aU').value.trim(),p=$('aP').value,m=$('aMsg');if(u.length<3||p.length<6){m.textContent=T.short;return}
-  const db=users();if(aMode=='reg'){if(db[u]){m.textContent=T.exists;return}const salt=hex(crypto.getRandomValues(new Uint8Array(16)));db[u]={salt,h:await hashPw(p,salt),t:Date.now()};localStorage.iis_users=JSON.stringify(db);m.textContent=T.ok}
-  else{if(!db[u]){m.textContent=T.noUser;return}if(await hashPw(p,db[u].salt)!==db[u].h){m.textContent=T.badPw;return}}
-  sessionStorage.iis_session=u;a.style.display='none';done()}}
+/* ---------- auth (Cloudflare Worker + D1) ---------- */
+const API='https://iis-auth.zeta-bat-2030.workers.dev/api';let TOK=sessionStorage.iis_tok||'',ME=JSON.parse(sessionStorage.iis_me||'null'),aMode='login';
+async function api(path,opt={}){const r=await fetch(API+path,{...opt,headers:{'Content-Type':'application/json',...(TOK?{Authorization:'Bearer '+TOK}:{}),...(opt.headers||{})}});const j=await r.json().catch(()=>({}));if(r.status==401&&TOK&&path!='/login'){logout();throw new Error('auth')}j._s=r.status;return j}
+function logout(){TOK='';ME=null;delete sessionStorage.iis_tok;delete sessionStorage.iis_me;location.reload()}
+function authUI(){$('aT').textContent=T.title;$('aSub').textContent=T.aSub;$('tL').textContent=T.login;$('tR').textContent=T.apply;$('lU').textContent=T.user;$('lP').textContent=T.pw;$('lW').textContent=T.reason;$('aW').placeholder=T.reasonPh;
+ $('aGo').textContent=aMode=='login'?T.enter:T.submit;$('aNote').textContent=aMode=='login'?T.aNote:T.applyNote;$('tL').classList.toggle('on',aMode=='login');$('tR').classList.toggle('on',aMode=='reg');$('wBox').style.display=aMode=='reg'?'block':'none';
+ $('aP').autocomplete=aMode=='reg'?'new-password':'current-password';$('aLang').textContent=L=='zh'?'EN':'中文'}
+function auth(done){if(TOK&&ME)return api('/me').then(j=>j.username?done():logout()).catch(()=>{});const a=$('auth');a.style.display='flex';authUI();
+ $('tL').onclick=()=>{aMode='login';$('aMsg').textContent='';authUI()};$('tR').onclick=()=>{aMode='reg';$('aMsg').textContent='';authUI()};
+ $('aLang').onclick=()=>{L=L=='zh'?'en':'zh';localStorage.lang=L;T=I18N[L];authUI()};
+ a.querySelector('form').onsubmit=async e=>{e.preventDefault();const u=$('aU').value.trim(),p=$('aP').value,w=$('aW').value.trim(),m=$('aMsg');
+  if(!/^[A-Za-z0-9_\-.]{3,32}$/.test(u)||p.length<8){m.textContent=T.short;return}if(aMode=='reg'&&w.length<2){m.textContent=T.needReason;return}
+  $('aGo').disabled=true;m.textContent='…';try{
+   if(aMode=='reg'){const j=await api('/apply',{method:'POST',body:JSON.stringify({username:u,password:p,reason:w})});m.textContent=j.ok?T.applied:(T.err[j.error]||j.error);if(j.ok){$('aP').value='';$('aW').value=''}}
+   else{const j=await api('/login',{method:'POST',body:JSON.stringify({username:u,password:p})});if(j.token){TOK=j.token;ME={u:j.username,role:j.role};sessionStorage.iis_tok=TOK;sessionStorage.iis_me=JSON.stringify(ME);a.style.display='none';done()}else m.textContent=T.err[j.error]||j.error}
+  }catch(x){m.textContent=T.err.net}finally{$('aGo').disabled=false}}}
+
+/* ---------- admin console ---------- */
+async function admin(){const box=$('adm');box.style.display='flex';$('admT').textContent='> '+T.admin+' // ADMIN CONSOLE';const j=await api('/admin/users');const st={pending:T.st.pending,approved:T.st.approved,rejected:T.st.rejected,disabled:T.st.disabled};
+ const acts=u=>u.role=='admin'?`<span class="src">ROOT</span>`:['approve','reject','disable','delete'].filter(a=>!(a=='approve'&&u.status=='approved')&&!(a=='reject'&&u.status!='pending')&&!(a=='disable'&&u.status!='approved')).map(a=>`<button class="b ${a}" data-u="${esc(u.username)}" data-a="${a}">${T.act[a]}</button>`).join('');
+ $('admList').innerHTML=`<table><tr><th>${T.user}</th><th>${T.status}</th><th>${T.reason}</th><th>${T.time}</th><th></th></tr>${(j.users||[]).map(u=>`<tr><td>${esc(u.username)}${u.role=='admin'?' ★':''}</td><td class="st-${u.status}">${st[u.status]||u.status}</td><td>${esc(u.reason||'')}</td><td>${new Date(u.created).toLocaleString(L=='zh'?'zh-CN':'en-US',{hour12:false})}</td><td>${acts(u)}</td></tr>`).join('')}</table>`;
+ $('admList').querySelectorAll('button').forEach(b=>b.onclick=async()=>{if(b.dataset.a=='delete'&&!confirm(T.act.delete+' '+b.dataset.u+'?'))return;await api('/admin/action',{method:'POST',body:JSON.stringify({username:b.dataset.u,action:b.dataset.a})});admin()})}
 
 /* ---------- data ---------- */
-async function race(path){const base=location.hostname.endsWith('github.io')||location.hostname=='localhost'?[path+'?_='+Date.now()]:[path];
- const M=[...base,...['cdn.jsdmirror.com','gcore.jsdelivr.net','fastly.jsdelivr.net','cdn.jsdelivr.net'].map(h=>`https://${h}/gh/zeta-bat-2030/ai-radar-map@main/${path}`)];
- return new Promise((res,rej)=>{let n=M.length,got=0;M.forEach((u,i)=>setTimeout(()=>{if(got)return;fetch(u).then(r=>r.ok?r.json():Promise.reject()).then(j=>{if(!got){got=1;res(j)}}).catch(()=>{if(--n==0)rej()})},i*300))})}
 function tok(s){const out=[];String(s).toLowerCase().split(/[\s,.;:!?，。；：！？、"'“”‘’()（）\[\]【】《》<>|/\\-]+/).forEach(w=>{if(!w)return;if(/[\u4e00-\u9fff]/.test(w)){const c=[...w];c.forEach((x,i)=>{out.push(x);if(i<c.length-1)out.push(x+c[i+1])})}else out.push(w)});return out}
 function buildIndex(){ms=new MiniSearch({fields:['title','zh','en','org','src'],storeFields:['id'],tokenize:tok,searchOptions:{tokenize:tok,prefix:true,fuzzy:.15,combineWith:'AND'}});ms.addAll(EV)}
 
 /* ---------- render ---------- */
 function i18n(){T=I18N[L];document.documentElement.lang=L=='zh'?'zh-CN':'en';document.title=T.title;$('ttl').textContent=T.title;$('sub').textContent=T.sub;$('hEv').textContent='> '+T.ev+' tail -f';$('hC').textContent='> '+T.byC;$('hO').textContent='> '+T.byO;$('hLb').textContent='> '+T.lb;
- $('q').placeholder=T.q;$('lang').textContent=L=='zh'?'EN':'中文';$('out').textContent=T.logout;
+ $('q').placeholder=T.q;$('admBtn').textContent=T.admin;$('lang').textContent=L=='zh'?'EN':'中文';$('out').textContent=T.logout;
  $('fCat').innerHTML=`<option value="">${T.allCat}</option>`+Object.keys(T.cat).map(k=>`<option value="${k}">${T.cat[k]}</option>`).join('');
  const regs=[...new Set(EV.map(e=>e.country).filter(Boolean))].sort();const rv=$('fReg').value;$('fReg').innerHTML=`<option value="">${T.allReg}</option>`+regs.map(r=>`<option value="${r}">${cn(r)}</option>`).join('');$('fReg').value=rv;
  $('fT').innerHTML=[['',T.allT],['24',T.h24],['72',T.d3],['168',T.d7]].map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
@@ -89,10 +97,10 @@ function live(){let i=0;setInterval(()=>{if(!view.length||$('q').value)return;co
 function ld(src){return new Promise((r,j)=>{const s=document.createElement('script');s.src=src;s.onload=r;s.onerror=j;document.head.appendChild(s)})}
 const LOC=/^(localhost|127\.)/.test(location.hostname);function loadScript(src){return LOC?ld(src):ld('https://cdn.jsdmirror.com/gh/zeta-bat-2030/ai-radar-map@main/'+src).catch(()=>ld(src))}
 async function start(){$('app').style.display=MOB?'flex':'grid';i18n();
- const [ev,md]=await Promise.all([race('data/events.json'),race('data/models.json').catch(()=>null),loadScript('vendor/minisearch.min.js')]);
+ const [ev,md]=await Promise.all([api('/data/events'),api('/data/models').catch(()=>null),loadScript('vendor/minisearch.min.js')]);if(ME&&ME.role=='admin')$('admBtn').style.display='';
  EV=ev.items.sort((a,b)=>(b.ts||0)-(a.ts||0));MD=md;$('sUv').textContent=new Date(ev.generated_at).toLocaleString(L=='zh'?'zh-CN':'en-US',{hour12:false});i18n();buildIndex();lb();filter();live();
  if(!weak())loadScript('vendor/globe.gl.min.js').then(()=>{initMap();geo()}).catch(()=>{initMap()});else{initMap()}}
 ['q','fCat','fReg','fT'].forEach(id=>$(id).addEventListener(id=='q'?'input':'change',filter));
-$('lang').onclick=()=>{L=L=='zh'?'en':'zh';localStorage.lang=L;i18n();authUI();render();lb()};$('tA').onclick=()=>{lbTab='arena';lb()};$('tO').onclick=()=>{lbTab='or';lb()};
-$('out').onclick=()=>{delete sessionStorage.iis_session;location.reload()};
+$('lang').onclick=()=>{L=L=='zh'?'en':'zh';localStorage.lang=L;i18n();render();lb();if($('adm').style.display=='flex')admin()};$('tA').onclick=()=>{lbTab='arena';lb()};$('tO').onclick=()=>{lbTab='or';lb()};
+$('out').onclick=logout;$('admBtn').onclick=admin;$('admX').onclick=()=>$('adm').style.display='none';
 const skipIntro=sessionStorage.iis_intro;sessionStorage.iis_intro=1;(skipIntro?f=>{$('intro').remove();f()}:intro)(()=>auth(start));
