@@ -89,7 +89,8 @@ pts.forEach((p,i)=>{const[px,py]=P(p.lat,p.lng),k=(t2*1.5+i*.07)%1;x.strokeStyle
 function geo(){const pts=view.filter(e=>e.lat!=null);if(mode=='3d'&&G){G.pointsData(pts).arcsData(arcsOf(pts)).ringsData(pts.slice(0,MOB?12:30))}}
 function live(){let i=0;setInterval(()=>{if(!view.length||$('q').value)return;const box=$('evs');if(box.children.length<2)return;const n=box.lastElementChild,e=EV.find(x=>x.id==n.dataset.id)||{};n.style.animation='none';n.offsetWidth;n.style.animation='';n.style.borderLeft='2px solid '+COL[e.cat];box.prepend(n);box.scrollTop=0;
 if(mode=='3d'&&G&&e.lat!=null&&!MOB)G.pointOfView({lat:e.lat,lng:e.lng,altitude:2.1},1600)},4000)}
-function loadScript(src){return new Promise((r,j)=>{const s=document.createElement('script');s.src=src;s.onload=r;s.onerror=j;document.head.appendChild(s)})}
+function ld(src){return new Promise((r,j)=>{const s=document.createElement('script');s.src=src;s.onload=r;s.onerror=j;document.head.appendChild(s)})}
+const LOC=/^(localhost|127\.)/.test(location.hostname);function loadScript(src){return LOC?ld(src):ld('https://cdn.jsdmirror.com/gh/zeta-bat-2030/ai-radar-map@main/'+src).catch(()=>ld(src))}
 async function start(){$('app').style.display=MOB?'flex':'grid';i18n();
 const [ev,md]=await Promise.all([race('data/events.json'),race('data/models.json').catch(()=>null),loadScript('vendor/minisearch.min.js')]);
 EV=ev.items.sort((a,b)=>(b.ts||0)-(a.ts||0));MD=md;$('sUv').textContent=new Date(ev.generated_at).toLocaleString(L=='zh'?'zh-CN':'en-US',{hour12:false});i18n();buildIndex();lb();filter();live();
