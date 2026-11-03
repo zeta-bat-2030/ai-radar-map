@@ -5,7 +5,7 @@ a{color:var(--c);text-decoration:none}a:hover{text-decoration:underline}
 /* intro */
 #intro{position:fixed;inset:0;z-index:100;background:#000;display:flex;align-items:center;justify-content:center;transition:opacity .6s}
 #intro canvas{position:absolute;inset:0;width:100%;height:100%}
-#introTxt{position:relative;color:var(--g);text-shadow:0 0 8px var(--g);font-size:14px;white-space:pre;max-width:92vw;overflow:hidden;background:rgba(0,0,0,.55);padding:18px 22px;border:1px solid var(--dim)}
+#introTxt{position:relative;color:var(--g);text-shadow:0 0 8px var(--g);font-size:clamp(11px,3.2vw,14px);white-space:pre-wrap;word-break:break-all;max-width:92vw;overflow:hidden;background:rgba(0,0,0,.55);padding:18px 22px;border:1px solid var(--dim)}
 #introTxt .big{display:block;font-size:clamp(20px,5vw,44px);color:#eafff5;letter-spacing:.12em;margin:10px 0;text-shadow:0 0 14px var(--g),2px 0 var(--r),-2px 0 var(--c);animation:gl 2.2s infinite}
 @keyframes gl{0%,92%,100%{transform:none}93%{transform:translate(3px,-1px)}95%{transform:translate(-3px,1px)}97%{transform:translate(1px,2px)}}
 #skip{position:absolute;right:16px;bottom:16px;z-index:2;background:none;border:1px solid var(--g);color:var(--g);padding:6px 14px;font:inherit;cursor:pointer}
